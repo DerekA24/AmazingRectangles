@@ -8,11 +8,11 @@ class Game {
         //cost of items
         this.grenadeCost = 10;
         this.shieldCost = 10;
-        this.bombCost = 40;
+        this.bombCost = 35;
         this.healthCost = 5;
         this.damageCost = 5;
         //base cost of all items
-        this.Costs = [10, 10, 40, 5, 5];
+        this.Costs = [10, 10, 35, 5, 5];
         // Persistent stats across rounds
         this.playerStats = {
             grenades: grenade,
