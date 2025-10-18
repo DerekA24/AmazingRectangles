@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazing Rectangles</title>
+    <link rel="stylesheet" href="css/styles.css">
+
+</head>
+<body>
+    <div id="app">
+        <header class="site-header">
+            <h1 class="site-title">Amazing Rectangles</h1>
+        </header>
+        <canvas id="drawingArea" width="800" height="600"></canvas>
+        <div id="cursorPosition"></div>
+    </div>
+    <div id="StartPopup" style="
+    display: flex; 
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background-color: rgba(0,0,0,0.6); 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000;
+    ">
+  <div style="
+    background-color: rgba(255,255,255,0.5);
+    padding: 30px 40px;
+    border-radius: 10px;
+    text-align: center;
+    font-family: Orbitron;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  ">
+    <h2 style="color: rgb(255, 0, 0); margin-bottom: 50px; font-size:70px">Amazing <br>Rectangles!</h2>
+    <button id="PlayGame" style="
+      padding: 10px 20px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    ">Play</button>
+    <button id="Tutorial" style="
+    padding: 10px 20px;
+      border: none;
+      background-color: #0dff00;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      ">Tutorial</button>
+  </div>
+</div>
+    </div>
+    <div id="losePopup" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+">
+  <div style="
+    background-color: rgba(255,255,255,0.5);
+    padding: 30px 40px;
+    border-radius: 10px;
+    text-align: center;
+    font-family: Orbitron;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  ">
+    <h2 style="color: rgb(255, 0, 0); margin-bottom: 50px; font-size:100px">You Lose</h2>
+    <button id="losePlayAgain" style="
+      padding: 10px 20px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    ">Play Again</button>
+    <button id="loseOK" style="
+    padding: 10px 20px;
+      border: none;
+      background-color: #0dff00;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      ">Exit</button>
+  </div>
+</div>
+<div id="YouWin" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+">
+  <div style="
+    background-color: rgba(255,255,255,0.5);
+    padding: 30px 40px;
+    border-radius: 10px;
+    text-align: center;
+    font-family: Orbitron;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  ">
+    <h2 style="color: rgb(255, 234, 0); margin-bottom: 50px; font-size:100px">You Win!</h2>
+    <button id="PlayAgain" style="
+      padding: 10px 20px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    ">Next Round</button>
+    <button id="Exit" style="
+    padding: 10px 20px;
+      border: none;
+      background-color: #0dff00;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      ">Home</button>
+  </div>
+</div>
+</div>
+    <div id="tutorialPopup" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+">
+  <div style="
+    background-color: rgba(255,255,255,0.35);
+    padding: 30px 40px;
+    border-radius: 10px;
+    text-align: center;
+    font-family: Orbitron;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  ">
+    <h2 style="color: rgb(255, 0, 0); margin-bottom: 50px; font-size:100px">Tutorial</h2>
+    <button id="exitTutorial" style="
+    padding: 10px 20px;
+      border: none;
+      background-color: #0dff00;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      ">Exit</button>
+  </div>
+</div>
+  <div id="popupShop" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+">
+  <div style="
+    background-color: rgba(255,255,255,0.35);
+    padding: 40px 50px;
+    border-radius: 15px;
+    font-family: Orbitron, sans-serif;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  ">
+    <h2 style="color: rgb(60, 255, 0); margin-bottom: 20px; font-size: 70px; text-align:center;">Shop</h2>
+
+    <!-- Cash display -->
+    <div id="shopCashDisplay" style="
+      font-size: 24px;
+      color: black;
+      margin-bottom: 20px;
+      text-align:center;
+    ">
+      Cash: $0
+    </div>
+
+    <!-- Scrollable shop items -->
+    <div style="
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      overflow-y: auto;
+      margin-bottom: 30px;
+      padding-right: 10px; /* for scrollbar */
+    ">
+      <!-- Grenade -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #49a045;
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+      ">
+        <div style="text-align: left;">
+          <div style="font-weight: bold; font-size: 18px;">Grenade</div>
+          <div style="font-size: 14px;">Kills All Enemies Within A Radius. Press 1 To Use</div>
+        </div>
+        <button id="buyGrenade" style="
+          background-color: rgba(0,0,0,0.2);
+          border: none;
+          color: white;
+          padding: 10px 15px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+        ">$50</button>
+      </div>
+
+      <!-- Shield -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #00bfff;
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+      ">
+        <div style="text-align: left;">
+          <div style="font-weight: bold; font-size: 18px;">Shield</div>
+          <div style="font-size: 14px;">Grants Invincibility For 8 Seconds. Press 3 To Use</div>
+        </div>
+        <button id="buyShield" style="
+          background-color: rgba(0,0,0,0.2);
+          border: none;
+          color: white;
+          padding: 10px 15px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+        ">$75</button>
+      </div>
+
+      <!-- Bomb -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #f3870c;
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+      ">
+        <div style="text-align: left;">
+          <div style="font-weight: bold; font-size: 18px;">Bomb</div>
+          <div style="font-size: 14px;">Kills All Enemies On Screen. Press 2 To Use</div>
+        </div>
+        <button id="buyBomb" style="
+          background-color: rgba(0,0,0,0.2);
+          border: none;
+          color: white;
+          padding: 10px 15px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+        ">$100</button>
+      </div>
+
+      <!-- Health -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #c93b3b;
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+      ">
+        <div style="text-align: left;">
+          <div style="font-weight: bold; font-size: 18px;">Increase Health</div>
+          <div style="font-size: 14px;">Increases Maximum Health</div>
+        </div>
+        <button id="buyHealth" style="
+          background-color: rgba(0,0,0,0.2);
+          border: none;
+          color: white;
+          padding: 10px 15px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+        ">$120</button>
+      </div>
+
+      <!-- Damage -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #aa33ff;
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+      ">
+        <div style="text-align: left;">
+          <div style="font-weight: bold; font-size: 18px;">Increase Damage</div>
+          <div style="font-size: 14px;">Increases Damage</div>
+        </div>
+        <button id="buyDamage" style="
+          background-color: rgba(0,0,0,0.2);
+          border: none;
+          color: white;
+          padding: 10px 15px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+        ">$150</button>
+      </div>
+
+    </div>
+
+    <!-- Bottom buttons -->
+    <div style="display: flex; justify-content: center; gap: 20px;">
+      <button id="Resume1" style="
+        padding: 12px 25px;
+        border: none;
+        background-color: #007BFF;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+      ">Resume</button>
+
+      <button id="BackHome1" style="
+        padding: 12px 25px;
+        border: none;
+        background-color: #0dff00;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+      ">Home</button>
+    </div>
+  </div>
+</div>
+
+
+
+  <div id="PausePopup" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+">
+  <div style="
+    background-color: rgba(255,255,255,0.5);
+    padding: 30px 40px;
+    border-radius: 10px;
+    text-align: center;
+    font-family: Orbitron;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  ">
+    <h2 style="color: rgb(255, 0, 0); margin-bottom: 50px; font-size:100px">Game Paused</h2>
+    <button id="Resume" style="
+      padding: 10px 20px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    ">Resume</button>
+    <button id="BackHome" style="
+    padding: 10px 20px;
+      border: none;
+      background-color: #0dff00;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      ">Home</button>
+  </div>
+</div>
+    <!-- Load CSS and ES modules from the development /js and /css endpoints -->
+    <script type="module" src="/js/Game.js"></script>
+</body>
+</html>

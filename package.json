@@ -1,0 +1,22 @@
+{
+  "name": "amazing-rectangles-web",
+  "version": "1.0.0",
+  "description": "A web application that replicates the Amazing Rectangles Java application using HTML, CSS, and JavaScript.",
+  "main": "src/js/app.js",
+  "scripts": {
+    "start": "live-server public",
+    "build": "echo 'Build step not defined'",
+    "test": "echo 'Test step not defined'"
+  },
+  "keywords": [
+    "rectangles",
+    "canvas",
+    "javascript"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0",
+    "live-server": "^1.2.1"
+  }
+}
