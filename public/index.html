@@ -5,14 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Amazing Rectangles</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+      /* Force a black page background so video (if playing) sits on black */
+      html, body, #app { background: black !important; }
+      /* Fallback overlay shown when video can't autoplay or cannot be decoded */
+      #videoFallback {
+        position: fixed;
+        left: 50%;
+        top: 60%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.6);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        z-index: 1100;
+        display: none;
+        font-family: Orbitron, sans-serif;
+      }
+      #videoFallback button { margin-left: 8px; }
+    </style>
 
 </head>
-<body>
-    <div id="app">
-        <header class="site-header">
+<body style="background: black;">
+  <div id="app">
+    <header class="site-header">
             <h1 class="site-title">Amazing Rectangles</h1>
         </header>
-        <canvas id="drawingArea" width="800" height="600"></canvas>
+    <!-- Background video for homescreen (autoplay muted loop). Hidden/shown by Game.goHome and Game.startApp -->
+  <video id="homeBgVideo" autoplay muted loop playsinline poster="images/BackgroundPoster.jpg" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: block; pointer-events: none;">
+    <!-- Preferred web-friendly formats (create these by converting Background.mov to mp4/webm) -->
+    <source src="images/Background.mp4" type="video/mp4">
+    <source src="images/Background.webm" type="video/webm">
+    <!-- Fallback: original mov (may not be supported by all browsers) -->
+    <source src="images/Background.mov" type="video/quicktime">
+      <!-- fallback text -->
+      Your browser does not support the background video.
+    </video>
+
+    <!-- Fallback overlay shown when video playback fails or is blocked -->
+    <div id="videoFallback">
+      Background video unavailable.
+      <button id="tryPlayBg">Try Play</button>
+      <span id="videoErrorLog" style="margin-left:8px; font-size:12px; color:#ddd"></span>
+    </div>
+
+    <script>
+      (function(){
+        const video = document.getElementById('homeBgVideo');
+        const fallback = document.getElementById('videoFallback');
+        const tryBtn = document.getElementById('tryPlayBg');
+        const logEl = document.getElementById('videoErrorLog');
+        if (!video) return;
+        video.preload = 'auto';
+        function showFallback(msg){
+          if (fallback) fallback.style.display = 'block';
+          if (logEl) logEl.textContent = msg || '';
+          console.warn('Background video problem:', msg);
+        }
+        function hideFallback(){ if (fallback) fallback.style.display = 'none'; if (logEl) logEl.textContent = ''; }
+        video.addEventListener('error', function(e){
+          const err = video.error;
+          const code = err ? err.code : '(no code)';
+          const msg = err && err.message ? err.message : ('video error code ' + code);
+          showFallback(msg);
+          console.error('Video error event:', e, 'video.error:', err);
+        });
+        video.addEventListener('stalled', function(){ showFallback('video stalled'); });
+        video.addEventListener('playing', hideFallback);
+        // Log format support and readyState for debugging
+        try { console.log('canPlayType mp4:', video.canPlayType('video/mp4'), 'webm:', video.canPlayType('video/webm'), 'quicktime:', video.canPlayType('video/quicktime')); } catch(e) {}
+        console.log('initial video readyState:', video.readyState);
+        // Try to play; if promise rejects, show fallback and attach user gesture
+        try {
+          const p = video.play();
+          if (p && typeof p.then === 'function') {
+            p.catch((err) => {
+              showFallback('autoplay blocked or failed');
+            });
+          }
+        } catch (e) { showFallback('play() threw'); }
+        tryBtn.onclick = function(){
+          try { video.play().then(()=> hideFallback()).catch(err=> showFallback('play failed: ' + (err && err.message)) ); }
+          catch(e){ showFallback('play threw'); }
+        };
+      })();
+    </script>
+
+    <canvas id="drawingArea" width="800" height="600"></canvas>
         <div id="cursorPosition"></div>
     </div>
     <div id="StartPopup" style="
@@ -50,7 +129,17 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 16px;
-      ">Tutorial</button>
+      ">How To Play</button>
+      <button id="ResumeSaved" style="
+        padding: 10px 20px;
+        border: none;
+        background-color: #6c757d;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        display: none;
+      ">Resume</button>
   </div>
 </div>
     </div>
@@ -131,7 +220,7 @@
   </div>
 </div>
 </div>
-    <div id="tutorialPopup" style="
+    <<div id="tutorialPopup" style="
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -147,19 +236,69 @@
     text-align: center;
     font-family: Orbitron;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    max-width: 750px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
   ">
-    <h2 style="color: rgb(255, 0, 0); margin-bottom: 50px; font-size:100px">Tutorial</h2>
+    <h2 style="color: rgb(255, 0, 0); margin-bottom: 20px; font-size: 70px;">How To Play</h2>
+    
+    <div style="
+      overflow-y: auto;
+      text-align: left;
+      font-size: 20px;
+      color: white;
+      line-height: 1.6;
+      padding-right: 10px;
+      max-height: 55vh;
+    ">
+
+      <p><strong>Your Character:</strong> You control an orange rectangle</p>
+      <ul style="margin-top: 0;">
+        <li>The orange rectangle follows your cursor</li>
+        <li>Hold <strong>R</strong> to start spinning. You must be spinning to deal damage!</li>
+        <li>Press <strong>Esc</strong> to pause and <strong>E</strong> for shop</li>
+      </ul>
+
+      <p><strong>Goal:</strong> Eliminate all the pink rectangles by running into them</p>
+      <ul style="margin-top: 0;">
+        <li>To eliminate a pink rectangle, run into it while spinning</li>
+        <li>The pink rectangles run away from you</li>
+        <li>As the rounds go on, pink rectangles will have more and more health</li>
+      </ul>
+
+      <p><strong>Enemies:</strong> Enemy rectangles deal damage to you!</p>
+      <ul style="margin-top: 0;">
+        <li><span style="color: lime;">Poisonous rectangles</span> are green. Touching them damages you</li>
+        <li><span style="color: violet;">Pulsing rectangles</span> are purple and red. When they are red, a red circle appears that damages you if you are inside it</li>
+        <li><span style="color: cyan;">Turret rectangles</span> are blue and red. When they are red, they fire bullets that do damage</li>
+        <li>Enemy rectangles deal more damage as the rounds go on</li>
+      </ul>
+
+      <p><strong>Shop:</strong> Buy items and stat upgrades from the shop!</p>
+      <ul style="margin-top: 0;">
+        <li><strong>Grenade:</strong> eliminates all enemy rectangles in a large radius. Press <strong>1</strong> to use</li>
+        <li><strong>Shield:</strong> grants invincibility for 8 seconds. Press <strong>2</strong> to use</li>
+        <li><strong>Bomb:</strong> automatically wins the round. Press <strong>3</strong> to use</li>
+        <li><strong>Health:</strong> Increases your health</li>
+        <li><strong>Damage:</strong> Increases your damage</li>
+        <li>Everything gets more expensive the more you buy!</li>
+      </ul>
+    </div>
+
     <button id="exitTutorial" style="
-    padding: 10px 20px;
+      margin-top: 25px;
+      padding: 10px 20px;
       border: none;
       background-color: #0dff00;
       color: white;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 16px;
-      ">Exit</button>
+      font-size: 18px;
+    ">Exit</button>
   </div>
 </div>
+
   <div id="popupShop" style="
   display: none;
   position: fixed;

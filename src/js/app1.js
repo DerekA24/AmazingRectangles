@@ -446,10 +446,33 @@ class app1{
                     // note: continue game loop (we're already inside draw)
                 };
 
-                // Exit to home (reload or change screen)
+                // Exit to home (prefer to save & go home via Game.goHome, fallback to reload)
                 document.getElementById('BackHome1').onclick = () => {
+                    // Ensure we fully stop the game loop and clear rectangles before navigating home.
+                    // This prevents the draw loop from later detecting a win (track===0) and
+                    // incrementing the round while we're trying to go home from the shop.
+                    isShop = false;
                     shopPopup.style.display = 'none';
-                    location.reload();
+                    try {
+                        // stop the drawing loop if possible
+                        if (self.area && typeof self.area.stop === 'function') self.area.stop();
+                        // clear rectangles so win detection won't trigger
+                        if (self.area && Array.isArray(self.area.rectangles)) self.area.rectangles = [];
+                        // guard the in-loop game state
+                        gameState = false;
+                    } catch (e) {
+                        console.warn('Error while stopping area before going home:', e);
+                    }
+                    if (self.game && typeof self.game.goHome === 'function') {
+                        try {
+                            self.game.goHome();
+                        } catch (e) {
+                            console.error('goHome() failed from shop exit, reloading instead', e);
+                            location.reload();
+                        }
+                    } else {
+                        location.reload();
+                    }
                 };
                 // update the cash display each frame while shop open
                 updateShopDisplay();
@@ -484,8 +507,28 @@ class app1{
                                 paused = false;
                             };
                             returnHome.onclick = () => {
+                                // Ensure we fully stop the game loop and clear rectangles before navigating home
+                                // This prevents the draw loop from detecting a win (track===0) while we're
+                                // trying to go home from the pause screen.
+                                paused = false;
                                 pausePopup.style.display = 'none';
-                                location.reload();
+                                try {
+                                    if (self.area && typeof self.area.stop === 'function') self.area.stop();
+                                    if (self.area && Array.isArray(self.area.rectangles)) self.area.rectangles = [];
+                                    gameState = false;
+                                } catch (e) {
+                                    console.warn('Error while stopping area before going home from pause:', e);
+                                }
+                                if (self.game && typeof self.game.goHome === 'function') {
+                                    try {
+                                        self.game.goHome();
+                                    } catch (e) {
+                                        console.error('goHome() failed from pause exit, reloading instead', e);
+                                        location.reload();
+                                    }
+                                } else {
+                                    location.reload();
+                                }
                             };
                             return; // skip updating positions, collisions, etc.
                         }
@@ -638,11 +681,18 @@ class app1{
                             if (self.game && typeof self.game.constructor === 'function') {
                                 const GameCtor = self.game.constructor;
                                 // These initial values match Game.main defaults used at startup.
+                                // clear any saved progress on loss - cannot resume after losing
+                                if (GameCtor.clearSavedGame) {
+                                    try { GameCtor.clearSavedGame(); } catch (e) { /* ignore */ }
+                                }
                                 const newGame = new GameCtor(5, 3, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1);
+                                // Hide home background video when a new game starts programmatically
+                                try { const video = document.getElementById('homeBgVideo'); if (video) video.style.display = 'none'; } catch (e) {}
                                 newGame.start();
                             } else {
                                 // fallback to reload if we can't construct a new Game
-                                location.reload();
+                                if (self.game && typeof self.game.goHome === 'function') self.game.goHome();
+                                else location.reload();
                             }
                         } catch (e) {
                             console.error('Failed to start fresh game programmatically, reloading instead.', e);
@@ -651,7 +701,21 @@ class app1{
                     };
                     okBtn.onclick = () => {
                         popup.style.display = 'none';
-                        location.reload(); // reload page to restart game
+                        // Ensure any previously saved game is erased so Resume cannot restore a lost session
+                        try {
+                            if (self.game && self.game.constructor && typeof self.game.constructor.clearSavedGame === 'function') {
+                                try { self.game.constructor.clearSavedGame(); } catch (e) { /* ignore */ }
+                            } else if (window && window.localStorage) {
+                                try { window.localStorage.removeItem('amazingRectSavedGame_v1'); } catch (e) { /* ignore */ }
+                            }
+                        } catch (e) { /* ignore */ }
+
+                        // Return home without saving (prevents creating a resume after losing)
+                        if (self.game && typeof self.game.goHome === 'function') {
+                            try { self.game.goHome(false); } catch (e) { console.error(e); location.reload(); }
+                        } else {
+                            location.reload(); // reload page to restart game
+                        }
                     }
                     return; // stop drawing loop
                 };
@@ -665,10 +729,11 @@ class app1{
 
             if (gameState) {
                 if (track===0) {
-                    self.round++;
-                    gameState=false; 
-                    self.area.rectangles=[];
-                    // Stop drawing / freeze the game if possible
+                    // Stop drawing / freeze the game and show the YouWin popup.
+                    // The actual round increment and scaling is handled by Game.nextRound()
+                    // when the player clicks Next Round.
+                    gameState = false;
+                    self.area.rectangles = [];
                     if (self.area.stop) self.area.stop();
                     const popup1 = document.getElementById('YouWin');
                     popup1.style.display = 'flex'; // shows the modal (uses flex centering)
@@ -686,7 +751,8 @@ class app1{
                     };
                     Exit.onclick = () => {
                         popup1.style.display = 'none';
-                        location.reload();
+                        if (self.game && typeof self.game.goHome === 'function') self.game.goHome();
+                        else location.reload();
                     };
                 
                     return; // stop drawing loop
@@ -719,7 +785,8 @@ class app1{
                     }
                     Exit.onclick = () => {
                         popup.style.display = 'none';
-                        location.reload();
+                        if (self.game && typeof self.game.goHome === 'function') self.game.goHome();
+                        else location.reload();
                     };
                     return; // stop drawing loop
                 }
@@ -758,7 +825,7 @@ class app1{
             const x = (self.area.canvas.width - hudWidth) / 2;
             const y = 12; // distance from top
 
-            // background (semi-transparent rounded rectangle)
+            // (semi-transparent rounded rectangle)
             ctx.save();
             ctx.fillStyle = 'rgba(0,0,0,0.35)';
             const radius = 10;
