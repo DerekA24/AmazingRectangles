@@ -240,9 +240,9 @@ class Game {
         }
     }
     updateCost() {
-        this.grenadeCost = this.Costs[0]*Math.pow(1.45, this.grenadeTimes);
+        this.grenadeCost = this.Costs[0]*Math.pow(1.40, this.grenadeTimes);
         this.shieldCost = this.Costs[1]*Math.pow(1.45, this.shieldTimes);
-        this.bombCost = this.Costs[2]*Math.pow(1.38, this.bombTimes);
+        this.bombCost = this.Costs[2]*Math.pow(1.47, this.bombTimes);
         this.healthCost = this.Costs[3]*Math.pow(1.32, this.healthTimes);
         this.damageCost = this.Costs[4]*Math.pow(1.28, this.damageTimes);
     }
@@ -255,7 +255,7 @@ class Game {
             // Scale enemy damage slightly each round. Use the current Damage1 value
             this.config.Damage1 = this.config.Damage1 * 1.125;
         }
-        if (Math.random()<.5) {
+        if (Math.random()<.67) {
             this.config.rectHealth+=2;
         }
         // Scale More Rectangles With Later Rounds
