@@ -3,7 +3,7 @@ import app1 from './app1.js'
 
 class Game {
     constructor(AmazingRects, PoisonRects, PulsRects, TurretRects, grenade, Shield, Bomb, swingHealth, rectHealth, Damage, Damage1, Round) {
-        this.totalCash = 5;
+        this.totalCash = 0;
         this.cashRecieved = .50; //cash recieved per rectangle destroyed
         //cost of items
         this.grenadeCost = 10;
