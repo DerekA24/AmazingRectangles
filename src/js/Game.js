@@ -67,6 +67,39 @@ class Game {
         }
     }
 
+    // Write the start-of-round snapshot to storage. This snapshot represents the
+    // player's persistent data at the beginning of the current round (so any
+    // earnings or purchases made during the round are not captured). We create
+    // this snapshot when a round begins (in startApp) and use it when the user
+    // returns to the home screen mid-round.
+    saveStartSnapshotToStorage() {
+        try {
+            // If a snapshot was created at round start, prefer that. Otherwise
+            // fall back to composing a payload from current fields (defensive).
+            const payload = this._startSnapshot ? this._startSnapshot : {
+                totalCash: this.totalCash,
+                cashRecieved: this.cashRecieved,
+                grenadeCost: this.grenadeCost,
+                shieldCost: this.shieldCost,
+                bombCost: this.bombCost,
+                healthCost: this.healthCost,
+                damageCost: this.damageCost,
+                Costs: this.Costs,
+                playerStats: this.playerStats,
+                grenadeTimes: this.grenadeTimes,
+                shieldTimes: this.shieldTimes,
+                bombTimes: this.bombTimes,
+                healthTimes: this.healthTimes,
+                damageTimes: this.damageTimes,
+                config: this.config,
+                round: this.round
+            };
+            localStorage.setItem(Game.STORAGE_KEY, JSON.stringify(payload));
+        } catch (e) {
+            console.warn('Failed to save round-start snapshot to storage', e);
+        }
+    }
+
     // Check if there's a saved game
     static hasSavedGame() {
         try {
@@ -74,6 +107,21 @@ class Game {
         } catch (e) {
             return false;
         }
+    }
+
+    // Preference key for math practice toggle
+    static PREF_MATH = 'amazingRect_pref_math_v1';
+
+    static isMathPracticeEnabled() {
+        try {
+            const raw = localStorage.getItem(Game.PREF_MATH);
+            if (raw === null) return true; // default ON
+            return raw === '1' || raw === 'true';
+        } catch (e) { return true; }
+    }
+
+    static setMathPractice(enabled) {
+        try { localStorage.setItem(Game.PREF_MATH, enabled ? '1' : '0'); } catch (e) {}
     }
 
     // Load a saved game from storage and return a Game instance, or null
@@ -161,6 +209,35 @@ class Game {
         const desiredHealth = Number.isFinite(this.playerStats.health) ? this.playerStats.health : 1;
         this.currentApp.desiredSwingHealth = desiredHealth;
         this.currentApp.setGameReference(this);
+        // Create a snapshot of the player's persistent data at the start of
+        // this round. This snapshot will be used to restore the player if
+        // they return to the homescreen mid-round (so any in-round earnings
+        // or purchases are not captured).
+        try {
+            this._startSnapshot = {
+                totalCash: this.totalCash,
+                cashRecieved: this.cashRecieved,
+                grenadeCost: this.grenadeCost,
+                shieldCost: this.shieldCost,
+                bombCost: this.bombCost,
+                healthCost: this.healthCost,
+                damageCost: this.damageCost,
+                Costs: this.Costs.slice ? this.Costs.slice() : this.Costs,
+                playerStats: Object.assign({}, this.playerStats),
+                grenadeTimes: this.grenadeTimes,
+                shieldTimes: this.shieldTimes,
+                bombTimes: this.bombTimes,
+                healthTimes: this.healthTimes,
+                damageTimes: this.damageTimes,
+                config: Object.assign({}, this.config),
+                round: this.round
+            };
+        } catch (e) {
+            // non-fatal; continue without snapshot if something goes wrong
+            console.warn('Failed to create start-of-round snapshot', e);
+            this._startSnapshot = null;
+        }
+
         this.currentApp.startApp();
     }
 
@@ -172,8 +249,10 @@ class Game {
             this.currentApp.area.stop?.();
             this.currentApp.area.rectangles = [];
         }
-        // Save current game state so it can be resumed later (unless explicitly disabled)
-        if (save) this.saveToStorage();
+    // Save the start-of-round snapshot so resuming mid-round doesn't capture
+    // any earnings or purchases made during the active round. If no
+    // snapshot exists, the helper will fall back to the defensive payload.
+    if (save) this.saveStartSnapshotToStorage();
 
         // Show start popup and enable Resume button
         const startPopup = document.getElementById('StartPopup');
@@ -238,6 +317,14 @@ class Game {
             if (!save) playBtn.textContent = 'Play';
             else playBtn.textContent = Game.hasSavedGame() ? 'New Game' : 'Play';
         }
+        // Math practice toggle (persisted)
+        try {
+            const mathToggle = document.getElementById('mathToggle');
+            if (mathToggle) {
+                mathToggle.checked = Game.isMathPracticeEnabled();
+                mathToggle.onchange = (e) => { Game.setMathPractice(!!e.target.checked); };
+            }
+        } catch (e) {}
     }
     updateCost() {
         this.grenadeCost = this.Costs[0]*Math.pow(1.40, this.grenadeTimes);
@@ -255,12 +342,12 @@ class Game {
             // Scale enemy damage slightly each round. Use the current Damage1 value
             this.config.Damage1 = this.config.Damage1 * 1.125;
         }
-        if (Math.random()<.67) {
+        if (Math.random()<.6) {
             this.config.rectHealth+=2;
         }
         // Scale More Rectangles With Later Rounds
         if (this.config.AmazingRects<20) {
-            if (Math.random()<.45) {
+            if (Math.random()<.5) {
                 this.config.AmazingRects+=1;
             }
         }
@@ -283,6 +370,9 @@ class Game {
         
         }
         else if (this.round>=11&&this.round<20) {
+            if (this.round==12&&this.config.TurretRects<1) {
+                this.config.TurretRects++;
+            }
             if (this.config.PulsRects<6) {
                 if (Math.random()<.3) {
                     this.config.PulsRects++;

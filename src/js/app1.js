@@ -245,7 +245,7 @@ class app1{
         let gameState=true;
         const start = Date.now();
         let lastDamageTime = 0; // global cooldown for all damage (1 second)
-        function canTakeDamage(cooldownMs = 1000) {
+        function canTakeDamage(cooldownMs = 750) {
             const now = performance.now();
             if (now - lastDamageTime >= cooldownMs) {
                 lastDamageTime = now;
@@ -568,7 +568,7 @@ class app1{
                             return true;
                         }
                     }
-                    if (intersect && isPoisonous && !self.swing.getShield()&&canTakeDamage(1000)) {
+                    if (intersect && isPoisonous && !self.swing.getShield()&&canTakeDamage(650)) {
                         if (self.swing.getHealth()<= self.damage1) {
                             gameOver = true;
                         }
@@ -586,7 +586,7 @@ class app1{
                         {x: swingBox.x + swingBox.w, y: swingBox.y + swingBox.h}
                     ];
                     for (const corner of corners) {
-                        if (rect.isPointIn(corner.x, corner.y)&&rect.Pulsing()&&!self.swing.getShield()&&canTakeDamage(1000)) {
+                        if (rect.isPointIn(corner.x, corner.y)&&rect.Pulsing()&&!self.swing.getShield()&&canTakeDamage(650)) {
                             if (self.swing.getHealth()<=self.damage1) {
                                 gameOver = true;
                             }
@@ -598,7 +598,7 @@ class app1{
                 }
                 if (rect instanceof BulletRectangle) {
                     if (rect.isOffCanvas()) return false; // remove bullet if off-canvas
-                    if (intersect&&!self.swing.getShield()&&canTakeDamage(1000)) {
+                    if (intersect&&!self.swing.getShield()&&canTakeDamage(650)) {
                         if (self.swing.getHealth()<=self.damage1) {
                             gameOver = true;
                         }
@@ -657,7 +657,7 @@ class app1{
                 rect.resetCooldown();
             }
             });
-            if (gameState&&end-start>1000) {
+            if (gameState&&end-start>650) {
                 if (gameOver) {
                     gameState=false;
                     self.area.rectangles=[];
@@ -740,6 +740,55 @@ class app1{
 
                     const Exit = document.getElementById('Exit');
                     const PlayAgain = document.getElementById('PlayAgain');
+                    // Math quiz wiring: appears above YouWin, no penalty
+                    const mathPopup = document.getElementById('MathQuizPopup');
+                    const mathQEl = document.getElementById('mathQuestion');
+                    const mathInput = document.getElementById('mathAnswer');
+                    const mathSubmit = document.getElementById('submitMath');
+                    const mathSkip = document.getElementById('skipMath');
+                    const mathFeedback = document.getElementById('mathFeedback');
+                    let currentAnswer = null;
+                    function generateMath() {
+                        // simple + or - with small integers
+                        const a = Math.floor(Math.random()*20)+1; // 1..20
+                        const b = Math.floor(Math.random()*20)+1;
+                        const plus = Math.random() < 0.6; // bias toward addition
+                        if (plus) {
+                            currentAnswer = a + b;
+                            mathQEl.textContent = `${a} + ${b} = ?`;
+                        } else {
+                            // ensure non-negative
+                            const x = Math.max(a, b);
+                            const y = Math.min(a, b);
+                            currentAnswer = x - y;
+                            mathQEl.textContent = `${x} - ${y} = ?`;
+                        }
+                        mathInput.value = '';
+                        mathFeedback.textContent = '';
+                    }
+                    function showMath() {
+                        if (mathPopup) mathPopup.style.display = 'flex';
+                        try { mathInput.focus(); } catch(e){}
+                    }
+                    function hideMath() {
+                        if (mathPopup) mathPopup.style.display = 'none';
+                    }
+                    mathSubmit.onclick = () => {
+                        const val = parseInt((mathInput.value||'').trim(), 10);
+                        if (Number.isNaN(val)) {
+                            mathFeedback.textContent = 'Please enter a number';
+                            return;
+                        }
+                        if (val === currentAnswer) {
+                            mathFeedback.textContent = 'Correct!';
+                            setTimeout(() => { hideMath(); }, 1000);
+                        } else {
+                            mathFeedback.textContent = `Not quite — correct answer is ${currentAnswer}`;
+                            setTimeout(() => { hideMath(); }, 2000);
+                        }
+                        // hide quiz after short delay so user sees feedback
+                    };
+                    mathSkip.onclick = () => { hideMath(); };
                     
                     PlayAgain.onclick = () => {
                         popup1.style.display = 'none';
@@ -749,6 +798,12 @@ class app1{
                             console.warn('Game reference not set on app1');
                         }
                     };
+                    // Show math quiz above the YouWin popup (no penalty) only if enabled in prefs
+                    try {
+                        const GameClass = (self && self.game && self.game.constructor) ? self.game.constructor : (window && window.Game) ? window.Game : null;
+                        const enabled = GameClass && typeof GameClass.isMathPracticeEnabled === 'function' ? GameClass.isMathPracticeEnabled() : true;
+                        if (enabled) { try { generateMath(); showMath(); } catch(e) { console.warn('Failed to show math quiz', e); } }
+                    } catch (e) { console.warn('Failed to determine math preference', e); }
                     Exit.onclick = () => {
                         popup1.style.display = 'none';
                         if (self.game && typeof self.game.goHome === 'function') self.game.goHome();

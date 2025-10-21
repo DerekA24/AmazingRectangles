@@ -4,8 +4,9 @@ class AmazingRectangle extends AbstractRectangle {
     constructor(x, y, width, height, color) {
         super(x, y, width, height);
         this.color = color;
-        this.speedX = Math.random() * 4-1; // Random speed in x direction
-        this.speedY = Math.random() * 4-1; // Random speed in y direction
+        let sign = Math.random() < 0.5 ? -1 : 1;
+        this.speedX = sign * (.5 + Math.random() * 2);
+        this.speedY = sign * (.5 + Math.random() * 2);
         this.isPoisonous = false;
         this.health=1;
         this.maxHealth = null;
@@ -57,8 +58,9 @@ class AmazingRectangle extends AbstractRectangle {
             this.x = Math.random() * maxX;
             this.y = Math.random() * maxY;
             // re-randomize speed to avoid repeated exits
-            this.speedX = Math.random() * 2 - 1;
-            this.speedY = Math.random() * 2 - 1;
+            let sign = Math.random() < 0.5 ? -1 : 1;
+            this.speedX = sign * (.5 + Math.random() * 2);
+            this.speedY = sign * (.5 + Math.random() * 2);
         } else {
             // keep bouncing on edges when partially outside
             if (this.x < 0 || this.x + this.width > canvas.width) {

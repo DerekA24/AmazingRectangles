@@ -150,6 +150,12 @@
         font-size: 16px;
         display: none;
       ">Resume</button>
+        <div style="margin-top:12px; font-size:14px; color:#fff; display:flex; justify-content:center; gap:8px; align-items:center;">
+          <label style="display:flex; align-items:center; gap:8px; color:#111; background: rgba(255,255,255,0.85); padding:6px 8px; border-radius:6px;">
+            <input id="mathToggle" type="checkbox" checked />
+            <span style="font-size:14px; color:#111;">Math Mode</span>
+          </label>
+        </div>
   </div>
 </div>
     </div>
@@ -230,6 +236,26 @@
   </div>
 </div>
 </div>
+<!-- Math quiz popup shown on top of YouWin (no penalty) -->
+<div id="MathQuizPopup" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1200;
+">
+  <div style="background: rgba(255,255,255,0.5); padding: 20px 24px; border-radius: 8px; text-align: center; font-family: Orbitron; max-width: 420px; margin: 0 auto;">
+    <div id="mathQuestion" style="font-size: 28px; color: #111; margin-bottom: 12px;"></div>
+    <input id="mathAnswer" type="text" inputmode="numeric" style="font-size: 20px; padding:8px 10px; width:120px; text-align:center;" />
+    <div style="margin-top:12px; display:flex; justify-content:center; gap:8px;">
+      <button id="submitMath" style="padding:8px 12px; font-size:16px;">Submit</button>
+      <button id="skipMath" style="padding:8px 12px; font-size:16px;">Skip</button>
+    </div>
+    <div id="mathFeedback" style="margin-top:12px; font-size:16px; color:#333;"></div>
+  </div>
+</div>
     <<div id="tutorialPopup" style="
   display: none;
   position: fixed;
@@ -294,6 +320,7 @@
         <li><strong>Damage:</strong> Increases your damage</li>
         <li>Everything gets more expensive the more you buy!</li>
       </ul>
+      <p><strong>Math Mode:</strong> You can turn math mode on or off by going to the home screen</p>
     </div>
 
     <button id="exitTutorial" style="
