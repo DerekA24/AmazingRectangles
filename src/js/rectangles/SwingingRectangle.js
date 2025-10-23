@@ -12,6 +12,8 @@ class SwingingRectangle extends AbstractRectangle {
         this.isShield=false;
         this.shieldTime=8;
         this.currentTime=0;
+        // Visual radius (in pixels) of the decorative shield circle
+        this.shieldRadius = Math.max(this.width, this.height) * 1.7;
     }
 
     // Accept either (cursorX, cursorY) or (dt)
@@ -60,6 +62,29 @@ class SwingingRectangle extends AbstractRectangle {
     }
 
     draw(context) {
+        // If shield is active, draw a translucent circle behind the swing as a visual indicator
+        if (this.isShield && context) {
+            try {
+                context.save();
+                context.beginPath();
+                const cx = this.x + this.width / 2;
+                const cy = this.y + this.height / 2;
+                const r = this.shieldRadius || Math.max(this.width, this.height) * 2.2;
+                // Filled translucent light-blue
+                context.fillStyle = 'rgba(135,206,250,0.3)'; // light sky blue, low alpha
+                context.arc(cx, cy, r, 0, Math.PI * 2);
+                context.fill();
+                // subtle border
+                context.lineWidth = 2;
+                context.strokeStyle = 'rgba(70,130,180,0.6)';
+                context.stroke();
+                context.restore();
+            } catch (e) {
+                // ignore drawing errors
+            }
+        }
+
+        // draw the swinging rectangle on top of the visual shield
         context.save();
         context.translate(this.x + this.width / 2, this.y + this.height / 2);
         context.rotate((Math.PI / 180) * this.swingAngle);

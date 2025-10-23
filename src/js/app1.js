@@ -6,6 +6,7 @@ import PulsingRectangle from './rectangles/PulsingRectangle.js';
 import TurretRectangle from './rectangles/TurretRectangle.js';
 import BulletRectangle from './rectangles/BulletRectangle.js';
 import Grenade from './rectangles/Grenade.js';
+import AbstractRectangle from './rectangles/AbstractRectangle.js';
 
 
 class app1{
@@ -90,7 +91,7 @@ class app1{
     // Spawn a grenade at the cursor position
     createGrenade() {
         const pos = cursorTracker.getPosition();
-        const grenade = new Grenade(pos.x - 7, pos.y - 7, 15, 15, "green");
+        const grenade = new Grenade(pos.x - 7, pos.y - 7, 15, 15, );
         grenade.setSpeed(0, 0);
         return grenade;
     }
@@ -968,10 +969,16 @@ class app1{
             if (e.code === 'Space' || e.key === 'Esc' || e.key === 'Escape') {
                 paused = true;
             }
-            if (e.key === '2' && self.Bombs > 0) {
+            if (e.key === '2' && self.Bombs > 0 && gameState === true) {
                 if (!self.oneShotKeys['2']) {
+                    const pos = cursorTracker.getPosition();
                     self.oneShotKeys['2'] = true;
                     self.game.playerStats.bombs--;
+                    const bomb = new AbstractRectangle(pos.x,pos.y,27,27);
+                    amazingRects.push(bomb);
+                    self.area.addRectangle(bomb);
+                    setTimeout(function() {
+                        // Apply bomb effect: remove all amazing rectangles except the swinging rectangle
                     self.area.rectangles.forEach(rect => {
                         if (rect instanceof AmazingRectangle) {
                             if (self.game) self.game.totalCash += self.cashRecieved;
@@ -983,9 +990,10 @@ class app1{
                     flashTime = 0.15; // duration of flash
                     flashTriggered = true; // mark that this is the special flash event
                     self.Bombs--;
+                    }, 750);
                 }
             }
-            if (e.key === '3' && !self.swing.getShield() && self.Shields > 0) {
+            if (e.key === '3' && !self.swing.getShield() && self.Shields > 0 && gameState === true) {
                 if (!self.oneShotKeys['3']) {
                     self.oneShotKeys['3'] = true;
                     self.swing.setShield(true);
@@ -996,7 +1004,7 @@ class app1{
             if (e.key === 'r' || e.key === 'R') {
                 self.swing.isRotating = true;
             }
-            if (e.key === '1' && self.Grenades > 0) {
+            if (e.key === '1' && self.Grenades > 0 && gameState === true) {
                 if (!self.oneShotKeys['1']) {
                     self.oneShotKeys['1'] = true;
                     // Spawn grenade at cursor, then decrement counts only if spawn succeeded
