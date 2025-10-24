@@ -750,19 +750,36 @@ class app1{
                     const mathFeedback = document.getElementById('mathFeedback');
                     let currentAnswer = null;
                     function generateMath() {
-                        // simple + or - with small integers
-                        const a = Math.floor(Math.random()*20)+1; // 1..20
-                        const b = Math.floor(Math.random()*20)+1;
-                        const plus = Math.random() < 0.6; // bias toward addition
-                        if (plus) {
+                        // Simple arithmetic: addition, subtraction, multiplication, division
+                        // Keep numbers small so problems remain quick and simple.
+                        const opRand = Math.random();
+                        if (opRand < 0.4) {
+                            // Addition (40%) - numbers 1..20
+                            const a = Math.floor(Math.random()*20)+1;
+                            const b = Math.floor(Math.random()*20)+1;
                             currentAnswer = a + b;
                             mathQEl.textContent = `${a} + ${b} = ?`;
-                        } else {
-                            // ensure non-negative
+                        } else if (opRand < 0.7) {
+                            // Subtraction (30%) - ensure non-negative result
+                            const a = Math.floor(Math.random()*20)+1;
+                            const b = Math.floor(Math.random()*20)+1;
                             const x = Math.max(a, b);
                             const y = Math.min(a, b);
                             currentAnswer = x - y;
                             mathQEl.textContent = `${x} - ${y} = ?`;
+                        } else if (opRand < 0.85) {
+                            // Multiplication (15%) - small factors 1..10
+                            const a = Math.floor(Math.random()*10)+1;
+                            const b = Math.floor(Math.random()*10)+1;
+                            currentAnswer = a * b;
+                            mathQEl.textContent = `${a} × ${b} = ?`;
+                        } else {
+                            // Division (15%) - produce integer result: choose divisor and quotient
+                            const divisor = Math.floor(Math.random()*9)+2; // 2..10
+                            const quotient = Math.floor(Math.random()*10)+1; // 1..10
+                            const dividend = divisor * quotient;
+                            currentAnswer = quotient;
+                            mathQEl.textContent = `${dividend} ÷ ${divisor} = ?`;
                         }
                         mathInput.value = '';
                         mathFeedback.textContent = '';
