@@ -7,8 +7,8 @@ class PulsingRectangle extends AbstractRectangle {
         this.isPulsing = false;
         this.speedX = Math.random() * 4 - 1; // Random speed in x direction
         this.speedY = Math.random() * 4 - 1; // Random speed in y direction
-        this.pulsePhase = 0;    // for sine wave
-        this.pulseAmplitude = 7; // how much the radius grows/shrinks
+        this.pulsePhase = 0;
+        this.pulseAmplitude = 7; // how much the radius pulses
         this.pulseSpeed = 2;    // speed of pulsing
         this.currentRadius = this.Radius;
     }
@@ -55,7 +55,7 @@ class PulsingRectangle extends AbstractRectangle {
             const maxY = Math.max(0, canvas.height - this.height);
             this.x = Math.random() * maxX;
             this.y = Math.random() * maxY;
-            // re-randomize speed to avoid repeated exits
+            // re-randomize speed
             this.speedX = Math.random() * 2 - 1;
             this.speedY = Math.random() * 2 - 1;
         } else {

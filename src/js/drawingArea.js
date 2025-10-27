@@ -1,4 +1,3 @@
-// DrawingArea class manages the canvas and rectangle rendering.
 class DrawingArea {
     constructor(canvas) {
         this.canvas = canvas || document.getElementById('drawingCanvas');
@@ -7,7 +6,7 @@ class DrawingArea {
         this.rectangles = [];
         this.animationFrameId = null;
         this.lastTime = 0;
-        // Ensure canvas internal size matches displayed size so width/height checks align
+        // Ensure canvas internal size matches displayed size
         this._fitCanvasToDisplay = this._fitCanvasToDisplay.bind(this);
         this._fitCanvasToDisplay();
         window.addEventListener('resize', this._fitCanvasToDisplay);
@@ -18,14 +17,13 @@ class DrawingArea {
     }
 
     _fitCanvasToDisplay() {
-        // Use the displayed size (CSS pixels) so canvas.width/height match what user sees.
+        // Use the displayed size so canvas.width/height match what user sees.
         const rect = this.canvas.getBoundingClientRect();
         const displayWidth = Math.max(1, Math.round(rect.width));
         const displayHeight = Math.max(1, Math.round(rect.height));
         if (this.canvas.width !== displayWidth || this.canvas.height !== displayHeight) {
             this.canvas.width = displayWidth;
             this.canvas.height = displayHeight;
-            // reset context transform in case it was scaled
             this.context.setTransform(1, 0, 0, 1, 0, 0);
         }
     }
@@ -65,7 +63,7 @@ class DrawingArea {
     }
     drawGrid(gridSize = 50) {
         const ctx = this.context;
-        ctx.strokeStyle = '#333'; // dark gray
+        ctx.strokeStyle = '#333';
         ctx.lineWidth = .5;
 
         for (let x = 0; x <= this.canvas.width; x += gridSize) {

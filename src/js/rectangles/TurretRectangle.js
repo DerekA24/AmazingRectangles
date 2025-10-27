@@ -14,7 +14,7 @@ class TurretRectangle extends AbstractRectangle {
         context.fillRect(this.x, this.y, this.width, this.height);
     }
     update(dt) {
-        // toggle firing randomly
+        // random bullet firing
         if (Math.random() < 0.005) this.isFiring = !this.isFiring;
 
         // decrease cooldown

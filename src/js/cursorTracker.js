@@ -4,8 +4,6 @@ const cursorTracker = {
     canvas: null,
 
     init: function(options = {}) {
-        // options.canvas (optional) - canvas element to use for coordinates
-        // options.spinningRectangle (optional) - rectangle to update
         this.canvas = options.canvas || null;
         if (options.spinningRectangle) this.spinningRectangle = options.spinningRectangle;
         document.addEventListener('mousemove', this.updateCursorPosition.bind(this));

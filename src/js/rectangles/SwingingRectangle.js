@@ -12,7 +12,7 @@ class SwingingRectangle extends AbstractRectangle {
         this.isShield=false;
         this.shieldTime=8;
         this.currentTime=0;
-        // Visual radius (in pixels) of the decorative shield circle
+        // Visual radius of shield circle
         this.shieldRadius = Math.max(this.width, this.height) * 1.7;
     }
 
@@ -30,9 +30,8 @@ class SwingingRectangle extends AbstractRectangle {
             this.x += Math.cos(this.angle) * this.speed * 10;
             this.y += Math.sin(this.angle) * this.speed * 10;
         } else {
-            // Called with dt or no args: simple idle swinging motion
             const dt = typeof a === 'number' ? a : 0;
-            this.angle += this.speed * dt * 60; // scale dt to sensible value
+            this.angle += this.speed * dt * 60;
             // small oscillation around current position
             this.x += Math.cos(this.angle) * this.speed * 2;
             this.y += Math.sin(this.angle) * this.speed * 2;
@@ -52,7 +51,7 @@ class SwingingRectangle extends AbstractRectangle {
                 }
             }
             else {
-                // Shield expired
+                // Shield expires
                 this.isShield = false; // turn off shield
                 this.color = "orange";
                 this.currentTime = 0; // reset for next activation
@@ -62,7 +61,7 @@ class SwingingRectangle extends AbstractRectangle {
     }
 
     draw(context) {
-        // If shield is active, draw a translucent circle behind the swing as a visual indicator
+        // If shield is active, draw a circle behind the swing as a visual indicator
         if (this.isShield && context) {
             try {
                 context.save();
@@ -70,11 +69,9 @@ class SwingingRectangle extends AbstractRectangle {
                 const cx = this.x + this.width / 2;
                 const cy = this.y + this.height / 2;
                 const r = this.shieldRadius || Math.max(this.width, this.height) * 2.2;
-                // Filled translucent light-blue
                 context.fillStyle = 'rgba(135,206,250,0.3)'; // light sky blue, low alpha
                 context.arc(cx, cy, r, 0, Math.PI * 2);
                 context.fill();
-                // subtle border
                 context.lineWidth = 2;
                 context.strokeStyle = 'rgba(70,130,180,0.6)';
                 context.stroke();
@@ -91,24 +88,24 @@ class SwingingRectangle extends AbstractRectangle {
         context.fillStyle = this.color;
         context.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
         context.restore();
-        // Draw health bar if health/maxHealth are set
+        // Draw health bar
         if (this.maxHealth !== null && this.maxHealth > 0) {
-            const barMargin = 10; // space above bottom edge
-            // Use a percentage of the canvas width but ensure we never exceed canvas width minus margins
+            const barMargin = 10;
+            // Use a percentage of the canvas width
             const maxBarWidth = Math.max(100, Math.min(canvas.width - 40, canvas.width * 0.6));
             const barWidth = maxBarWidth;
             const barHeight = 10;
 
-            // healthRatio should be clamped between 0 and 1
+            // healthRatio set between 0 and 1
             const healthRatio = Math.max(0, Math.min(1, this.health / this.maxHealth));
-            const barX = (canvas.width - barWidth) / 2; // center horizontally
-            const barY = canvas.height - barHeight - barMargin; // near bottom
+            const barX = (canvas.width - barWidth) / 2;
+            const barY = canvas.height - barHeight - barMargin;
 
             // Background bar
             context.fillStyle = 'gray';
             context.fillRect(barX, barY, barWidth, barHeight);
 
-            // Health fill
+            // Health coloring on the bar
             if (healthRatio > 0.5) context.fillStyle = 'limegreen';
             else if (healthRatio > 0.25) context.fillStyle = 'yellow';
             else context.fillStyle = 'red';
@@ -128,14 +125,12 @@ class SwingingRectangle extends AbstractRectangle {
         return this.health;
     }
     setHealth(health) {
-        // When setting health on the swinging rectangle, treat the value as the new max health
-        // if it's greater than the current max, and ensure current health is clamped to max.
+        // When setting health on the swinging rectangle the value is the new max health
         const parsed = Number(health) || 0;
         // If maxHealth is not set or new value is larger, update maxHealth
         if (this.maxHealth == null || parsed > this.maxHealth) {
             this.maxHealth = parsed;
         }
-        // Set current health but clamp to [0, maxHealth]
         this.health = Math.max(0, Math.min(parsed, this.maxHealth));
 
     }

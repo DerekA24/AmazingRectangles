@@ -4,7 +4,7 @@ import app1 from './app1.js'
 class Game {
     constructor(AmazingRects, PoisonRects, PulsRects, TurretRects, grenade, Shield, Bomb, swingHealth, rectHealth, Damage, Damage1, Round) {
         this.totalCash = 0;
-        this.cashRecieved = .50; //cash recieved per rectangle destroyed
+        this.cashRecieved = .50; //cash recieved per rectangle destroyed. Will be exponentially scaled later
         //cost of items
         this.grenadeCost = 10;
         this.shieldCost = 10;
@@ -13,7 +13,7 @@ class Game {
         this.damageCost = 5;
         //base cost of all items
         this.Costs = [10, 10, 35, 5, 5];
-        // Persistent stats across rounds
+        // player stats across rounds
         this.playerStats = {
             grenades: grenade,
             shields: Shield,
@@ -21,7 +21,7 @@ class Game {
             health: swingHealth,
             damage: Damage
         };
-        // times each item has been bought
+        // times each item has been bought, so you can scale it
         this.grenadeTimes = 0;
         this.shieldTimes = 0;
         this.bombTimes = 0;
@@ -37,10 +37,10 @@ class Game {
     start() {
         this.startApp();
     }
-    // Storage key for saving/restoring progress
+    // Storage key for saving progress
     static STORAGE_KEY = 'amazingRectSavedGame_v1';
 
-    // Save current game state to localStorage (called at the start of each round)
+    // Save current game state to localStorage
     saveToStorage() {
         try {
             const payload = {
@@ -67,15 +67,10 @@ class Game {
         }
     }
 
-    // Write the start-of-round snapshot to storage. This snapshot represents the
-    // player's persistent data at the beginning of the current round (so any
-    // earnings or purchases made during the round are not captured). We create
-    // this snapshot when a round begins (in startApp) and use it when the user
-    // returns to the home screen mid-round.
+    // Write the start-of-round snapshot to storage
     saveStartSnapshotToStorage() {
         try {
-            // If a snapshot was created at round start, prefer that. Otherwise
-            // fall back to composing a payload from current fields (defensive).
+            // If a snapshot was created at round start, prefer that. Otherwise just fallback
             const payload = this._startSnapshot ? this._startSnapshot : {
                 totalCash: this.totalCash,
                 cashRecieved: this.cashRecieved,
@@ -115,7 +110,7 @@ class Game {
     static isMathPracticeEnabled() {
         try {
             const raw = localStorage.getItem(Game.PREF_MATH);
-            if (raw === null) return true; // default ON
+            if (raw === null) return true; // default on
             return raw === '1' || raw === 'true';
         } catch (e) { return true; }
     }
@@ -124,13 +119,13 @@ class Game {
         try { localStorage.setItem(Game.PREF_MATH, enabled ? '1' : '0'); } catch (e) {}
     }
 
-    // Load a saved game from storage and return a Game instance, or null
+    // Load a saved game from storage or null if there isn't one
     static loadFromStorage() {
         try {
             const raw = localStorage.getItem(Game.STORAGE_KEY);
             if (!raw) return null;
             const s = JSON.parse(raw);
-            // Construct a new Game using the saved config values (fallbacks for safety)
+            // Construct a new Game using the saved config values
             const cfg = s.config || {};
             const g = new Game(
                 cfg.AmazingRects ?? 5,
@@ -205,14 +200,11 @@ class Game {
             this.damageCost,
             this.cashRecieved
         );
-        // After constructing app1, ensure the swing's maxHealth/current health reflect player stats.
+
         const desiredHealth = Number.isFinite(this.playerStats.health) ? this.playerStats.health : 1;
         this.currentApp.desiredSwingHealth = desiredHealth;
         this.currentApp.setGameReference(this);
-        // Create a snapshot of the player's persistent data at the start of
-        // this round. This snapshot will be used to restore the player if
-        // they return to the homescreen mid-round (so any in-round earnings
-        // or purchases are not captured).
+        // Create a snapshot of the player's persistent data at the start of ecah round to save progress
         try {
             this._startSnapshot = {
                 totalCash: this.totalCash,
@@ -233,7 +225,7 @@ class Game {
                 round: this.round
             };
         } catch (e) {
-            // non-fatal; continue without snapshot if something goes wrong
+            // again fallback to null if snapshot creation fails
             console.warn('Failed to create start-of-round snapshot', e);
             this._startSnapshot = null;
         }
@@ -242,7 +234,6 @@ class Game {
     }
 
     // Called when player chooses to go back to the home screen.
-    // pass save=false to avoid persisting (useful when returning after a loss)
     goHome(save = true) {
         // stop current app
         if (this.currentApp && this.currentApp.area) {
@@ -250,8 +241,7 @@ class Game {
             this.currentApp.area.rectangles = [];
         }
     // Save the start-of-round snapshot so resuming mid-round doesn't capture
-    // any earnings or purchases made during the active round. If no
-    // snapshot exists, the helper will fall back to the defensive payload.
+    //  any earnings or purchases made during the active round, which is by design
     if (save) this.saveStartSnapshotToStorage();
 
         // Show start popup and enable Resume button
@@ -262,7 +252,7 @@ class Game {
             const video = document.getElementById('homeBgVideo');
             const canvas = document.getElementById('drawingArea');
             if (video) {
-                // show video only when we are not preserving the game screen (i.e., save===false or first load)
+                // show video only when we are not preserving the game screen
                 if (!save) {
                     video.style.display = 'block';
                     // hide canvas so video is unobstructed behind popups
@@ -273,7 +263,7 @@ class Game {
                 }
             }
         } catch (e) {
-            // ignore DOM errors
+            // ignore errors
         }
         const resumeBtn = document.getElementById('ResumeSaved');
         if (resumeBtn) {
@@ -313,11 +303,11 @@ class Game {
         const playBtn = document.getElementById('PlayGame');
         if (playBtn) {
             playBtn.style.display = 'inline-block';
-            // If we intentionally didn't save (e.g., after a loss), prefer 'Play'
+            // If we intentionally didn't save, prefer 'Play'
             if (!save) playBtn.textContent = 'Play';
             else playBtn.textContent = Game.hasSavedGame() ? 'New Game' : 'Play';
         }
-        // Math practice toggle (persisted)
+        // Math practice toggle
         try {
             const mathToggle = document.getElementById('mathToggle');
             if (mathToggle) {
@@ -406,9 +396,9 @@ class Game {
                 }
             }
         }
-        this.startApp(); // reruns the ENTIRE startApp() fresh
+        this.startApp(); // reruns startApp()
         // Persist new round/state so resume will reflect the updated round
-        try { this.saveToStorage(); } catch (e) { /* ignore */ }
+        try { this.saveToStorage(); } catch (e) { }
     }
     static main() {
         const init = () => {
@@ -425,19 +415,18 @@ class Game {
         try {
             const video = document.getElementById('homeBgVideo');
             if (video) video.style.display = 'block';
-            // Try to start playback programmatically; if blocked, start on first user gesture
+            // Try to start playback programmatically. If blocked, start on first user gesture
             try {
                 const p = video.play();
                 if (p && typeof p.then === 'function') {
                     p.catch(() => {
-                        // Playback blocked by browser policy: attach one-time gesture to start
                         const startVideo = () => { try { video.play(); } catch (e) {} finally { window.removeEventListener('click', startVideo); window.removeEventListener('keydown', startVideo); } };
                         window.addEventListener('click', startVideo, { once: true });
                         window.addEventListener('keydown', startVideo, { once: true });
                     });
                 }
             } catch (e) {
-                // ignore play() exceptions
+                // ignore exceptions
             }
         } catch (e) {}
 
@@ -447,10 +436,9 @@ class Game {
             ResumeSaved.onclick = () => {
                 const loaded = Game.loadFromStorage();
                 if (loaded) {
-                    // Replace the newly created game instance with the loaded one
-                    // and start from the saved state
+                    // Replace the newly created game instance with the loaded one and start from the saved state
                     try {
-                        // copy fields from loaded to game instance
+                        // copy fields
                         Object.assign(game, {
                             totalCash: loaded.totalCash,
                             cashRecieved: loaded.cashRecieved,
@@ -470,7 +458,7 @@ class Game {
                             round: loaded.round
                         });
                         if (popup) popup.style.display = 'none';
-                        // Hide the background video when game starts/resumes and show canvas
+                        // Hide the background video when game starts or resumes and show canvas
                         try { const video = document.getElementById('homeBgVideo'); const canvas = document.getElementById('drawingArea'); if (video) video.style.display = 'none'; if (canvas) canvas.style.display = 'block'; } catch (e) {}
                         game.start();
                     } catch (e) {
@@ -480,20 +468,19 @@ class Game {
             };
         }
 
-        // Set Play button label depending on whether a saved game exists.
+        // Set Play button label depending on whether a saved game exists
         if (Play) Play.textContent = Game.hasSavedGame() ? 'New Game' : 'Play';
 
         Play.onclick = () => {
             if (popup) popup.style.display = 'none';
             // Starting a new game via Play should erase any previous saved progress
-            try { Game.clearSavedGame(); } catch (e) { /* ignore */ }
-            // hide home video when gameplay begins and show canvas
+            try { Game.clearSavedGame(); } catch (e) { }
             try { const video = document.getElementById('homeBgVideo'); const canvas = document.getElementById('drawingArea'); if (video) video.style.display = 'none'; if (canvas) canvas.style.display = 'block'; } catch (e) {}
             // create a fresh Game instance and start it
             game = new Game(5, 3, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1);
             // hide resume button when starting a fresh game
             if (ResumeSaved) ResumeSaved.style.display = 'none';
-            game.start(); // starts the full app
+            game.start();
         };
 
         Tutorial.onclick = () => {

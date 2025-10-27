@@ -15,27 +15,27 @@ class AmazingRectangle extends AbstractRectangle {
     draw(context) {
         context.fillStyle = this.color || 'pink';
         context.fillRect(this.x, this.y, this.width, this.height);
-        // --- HEALTH BAR SECTION ---
+        // Health Bar
         if (this.maxHealth !== null) {
             const barWidth = this.width*1.1;
-            const barHeight = 5; // thin bar
+            const barHeight = 5;
             const healthRatio = Math.max(0, this.health / this.maxHealth);
 
-            // Position the bar just *below* the rectangle
+            // Position the bar just below the rectangle
             const barX = this.x - this.width*.05;
             const barY = this.y + this.height + 4;
 
-            // Background (gray, full width)
+            // Background
             context.fillStyle = 'gray';
             context.fillRect(barX, barY, barWidth, barHeight);
 
-            // Health portion (green/red based on health ratio)
+            // Health portion and ratio
             if (healthRatio > 0.5) context.fillStyle = 'limegreen';
             else if (healthRatio > 0.25) context.fillStyle = 'yellow';
             else context.fillStyle = 'red';
             context.fillRect(barX, barY, barWidth * healthRatio, barHeight);
 
-            // Optional: draw a border around the bar
+            // boarder
             context.strokeStyle = 'black';
             context.lineWidth = 1;
             context.strokeRect(barX, barY, barWidth, barHeight);
@@ -45,7 +45,7 @@ class AmazingRectangle extends AbstractRectangle {
     update() {
         this.x += this.speedX;
         this.y += this.speedY;
-        // If rectangle goes fully off any side of the canvas, teleport it to a random position
+        // If rectangle goes fully off canvas, teleport it to a random position
         const offLeft = this.x + this.width < 0;
         const offRight = this.x > canvas.width;
         const offTop = this.y + this.height < 0;
@@ -57,7 +57,7 @@ class AmazingRectangle extends AbstractRectangle {
             const maxY = Math.max(0, canvas.height - this.height);
             this.x = Math.random() * maxX;
             this.y = Math.random() * maxY;
-            // re-randomize speed to avoid repeated exits
+            // re-randomize speed
             let sign = Math.random() < 0.5 ? -1 : 1;
             this.speedX = sign * (.5 + Math.random() * 2);
             this.speedY = sign * (.5 + Math.random() * 2);

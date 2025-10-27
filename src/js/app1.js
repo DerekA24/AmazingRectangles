@@ -74,7 +74,7 @@ class app1{
         const center = turret.returnLocation();
         const cursor = cursorTracker.getPosition();
 
-        // Compute direction vector
+        // direction vector
         const dx = cursor.x - center.x;
         const dy = cursor.y - center.y;
         const mag = Math.sqrt(dx*dx + dy*dy);
@@ -154,7 +154,7 @@ class app1{
         return function updateRepulsion() {
             const pos = cursorProvider();
             rectangles.forEach(rect => {
-                // compute center of rectangle
+                // center of rectangle
                 if (rect instanceof AmazingRectangle && !rect.getPoisonous()) {
                     const cx = rect.x + rect.width / 2;
                     const cy = rect.y + rect.height / 2;
@@ -186,27 +186,23 @@ class app1{
         }
 
         self.area = new DrawingArea(canvas);
-        // Expose canvas globally for legacy code that references `canvas` directly
         window.canvas = canvas;
         const amazingRects = this.createAmazingRectangles(self.area, this.RECT_COUNT, this.POIS_COUNT, this.PULS_COUNT, this.TURRET_COUNT);
         self.swing = self.createSwingingRectangle(self.area,self.health);
-        // If a desired swing health was provided by Game (e.g., after buying health), apply it here.
-        // This ensures the actual SwingingRectangle object has its max/current health set
-        // to the player's upgraded value when a new round starts.
+        // If a desired swing health was provided by Game, apply it here.
         try {
             const desired = (typeof this.desiredSwingHealth === 'number') ? this.desiredSwingHealth : (this.health || 1);
             if (self.swing && typeof self.swing.setHealth === 'function') {
                 self.swing.setHealth(desired);
             }
         } catch (e) {
-            // defensive: ignore if anything goes wrong (leaves default health)
             console.warn('Failed to apply desired swing health:', e);
         }
 
         // Initialize cursor tracker with canvas and spinning rectangle
         cursorTracker.init({ canvas: canvas, spinningRectangle: self.swing });
 
-        // Load HUD icons (use the images placed in public/images/)
+        // Load HUD icons
         try {
             self.hudIcons = {
                 grenade: new Image(),
@@ -224,7 +220,7 @@ class app1{
         // Set up repulsion updater
         const repulse = this.applyCursorRepulsion(amazingRects, () => cursorTracker.getPosition());
 
-        // Update shop button labels to reflect current shop prices (keep HTML static but dynamic labels)
+        // Update shop button labels to reflect current shop prices
         try {
             const btnG = document.getElementById('buyGrenade');
             const btnS = document.getElementById('buyShield');
@@ -240,12 +236,11 @@ class app1{
             console.warn('Failed to set shop price labels:', e);
         }
 
-        // Wrap rectangle update methods to include repulsion per frame
-        // We'll call repulse() from the DrawingArea draw loop by monkey-patching area.draw
+        // Add rectangle update methods to include repulsion per frame
         const originalDraw = self.area.draw.bind(self.area);
         let gameState=true;
         const start = Date.now();
-        let lastDamageTime = 0; // global cooldown for all damage (1 second)
+        let lastDamageTime = 0;
         function canTakeDamage(cooldownMs = 750) {
             const now = performance.now();
             if (now - lastDamageTime >= cooldownMs) {
@@ -257,15 +252,14 @@ class app1{
     
     let paused = false;
     let isShop = false;
-    // Prevent OS key-repeat from consuming multiple items per press
+    // Prevent from consuming multiple items per press
     const oneShotKeys = { '1': false, '2': false, '3': false };
-        // helper to draw the HUD (called from multiple places, including shop)
         const drawHUD = function() {
             const ctx = self.area.context;
             const hudWidth = 260;
             const hudHeight = 56;
             const x = (self.area.canvas.width - hudWidth) / 2;
-            const y = 12; // distance from top
+            const y = 12;
 
             ctx.save();
             // background
@@ -343,16 +337,16 @@ class app1{
                 const shopPopup = document.getElementById('popupShop');
                 const cashDisplay = document.getElementById('shopCashDisplay');
 
-                // show the shop modal
+                // show the shop
                 shopPopup.style.display = 'flex';
 
-                // show current cash (safe fallback)
+                // show current cash with fallback
                 function updateShopDisplay() {
                     const totalCash = (self.game && typeof self.game.totalCash === 'number') ? self.game.totalCash : 0;
                     // show with 2 decimals
                     cashDisplay.textContent = `Cash: $${totalCash.toFixed(2)}`;
 
-                    // Update all shop button prices (declare once)
+                    // Update all shop button prices
                     const btnG = document.getElementById('buyGrenade');
                     const btnS = document.getElementById('buyShield');
                     const btnB = document.getElementById('buyBomb');
@@ -373,8 +367,8 @@ class app1{
                         self.Grenades = (self.Grenades || 0) + 1;
                         if (self.game) {
                             self.game.playerStats.grenades = self.Grenades;
-                            self.game.grenadeTimes++; // track purchase count
-                                self.game.updateCost(); // update costs immediately
+                            self.game.grenadeTimes++;
+                                self.game.updateCost();
                         }
                         updateShopDisplay();
                     }
@@ -387,8 +381,8 @@ class app1{
                         self.Shields = (self.Shields || 0) + 1;
                         if (self.game) {
                             self.game.playerStats.shields = self.Shields;
-                            self.game.shieldTimes++; // track purchase count
-                                self.game.updateCost(); // update costs immediately
+                            self.game.shieldTimes++;
+                                self.game.updateCost();
                         }
                         updateShopDisplay();
                     }
@@ -401,7 +395,7 @@ class app1{
                         self.Bombs = (self.Bombs || 0) + 1;
                         if (self.game) {
                             self.game.playerStats.bombs = self.Bombs;
-                            self.game.bombTimes++; // track purchase count
+                            self.game.bombTimes++;
                             self.game.updateCost();
                         }
                         updateShopDisplay();
@@ -412,12 +406,12 @@ class app1{
                     const total = self.game?.totalCash ?? 0;
                     if (total >= self.game.healthCost) {
                         if (self.game) self.game.totalCash -= self.game.healthCost;
-                        // increase swing max health (your SwingingRectangle should read this value when set)
+                        // increase swing max health
                         self.swing.maxHealth = (self.swing.maxHealth || 0) + 1.5;
                         self.swing.health+=1.5;
                         if (self.game) {
                             self.game.playerStats.health = self.swing.maxHealth;
-                            self.game.healthTimes++; // track purchase count
+                            self.game.healthTimes++;
                             self.game.updateCost();
                         }
                         updateShopDisplay();
@@ -432,7 +426,7 @@ class app1{
                         self.damage = (self.damage || 0) + 2;
                         if (self.game) {
                             self.game.playerStats.damage = self.damage;
-                            self.game.damageTimes++; // track purchase count
+                            self.game.damageTimes++;
                             self.game.updateCost();
                         }
                         updateShopDisplay();
@@ -444,14 +438,11 @@ class app1{
                     lastDamageTime = performance.now(); // keep your damage timers from immediately triggering
                     shopPopup.style.display = 'none';
                     isShop = false;
-                    // note: continue game loop (we're already inside draw)
                 };
 
-                // Exit to home (prefer to save & go home via Game.goHome, fallback to reload)
+                // Exit to home (prefer to save & go home via Game.goHome
                 document.getElementById('BackHome1').onclick = () => {
                     // Ensure we fully stop the game loop and clear rectangles before navigating home.
-                    // This prevents the draw loop from later detecting a win (track===0) and
-                    // incrementing the round while we're trying to go home from the shop.
                     isShop = false;
                     shopPopup.style.display = 'none';
                     try {
@@ -459,7 +450,6 @@ class app1{
                         if (self.area && typeof self.area.stop === 'function') self.area.stop();
                         // clear rectangles so win detection won't trigger
                         if (self.area && Array.isArray(self.area.rectangles)) self.area.rectangles = [];
-                        // guard the in-loop game state
                         gameState = false;
                     } catch (e) {
                         console.warn('Error while stopping area before going home:', e);
@@ -478,28 +468,26 @@ class app1{
                 // update the cash display each frame while shop open
                 updateShopDisplay();
 
-                // Draw a static frame (no updates) so HUD & counts reflect purchases while shop is open
+                // Draw a static frame so HUD & counts reflect purchases while shop is open
                 try {
                     self.area.clear();
-                    // draw background grid
                     self.area.drawGrid(50);
                     // draw all rectangles but do not call their update methods
                     self.area.rectangles.forEach(rect => {
                         if (rect && typeof rect.draw === 'function') rect.draw(self.area.context);
                     });
-                    // draw HUD showing current counts
                     drawHUD();
                 } catch (e) {
-                    // non-fatal; still continue
+                    // still continue if fails
                     console.warn('Error drawing static shop frame', e);
                 }
 
-                return; // skip the rest of updates/collisions this frame
+                return; // skip the rest of updates this frame
             }
                         if (paused) {
                             requestAnimationFrame(self.area.draw); // keep looping but frozen
                             const pausePopup = document.getElementById('PausePopup');
-                            pausePopup.style.display = 'flex'; // shows the modal (uses flex centering)
+                            pausePopup.style.display = 'flex';
                             const Resume = document.getElementById('Resume');
                             const returnHome = document.getElementById('BackHome');   
                             Resume.onclick = () => {
@@ -509,8 +497,6 @@ class app1{
                             };
                             returnHome.onclick = () => {
                                 // Ensure we fully stop the game loop and clear rectangles before navigating home
-                                // This prevents the draw loop from detecting a win (track===0) while we're
-                                // trying to go home from the pause screen.
                                 paused = false;
                                 pausePopup.style.display = 'none';
                                 try {
@@ -531,15 +517,15 @@ class app1{
                                     location.reload();
                                 }
                             };
-                            return; // skip updating positions, collisions, etc.
+                            return; // skip updating game logic
                         }
             self.game.updateCost();
             const end = Date.now();
             repulse();
             let gameOver=false;
-            // compute dt from previous frame (seconds)
+            // dt from previous frame in seconds
             const dt = self.area.lastTime ? (time - self.area.lastTime) / 1000 : 0;
-            // update swinging rectangle with cursor position (SwingingRectangle expects cursor args)
+            // update swinging rectangle with cursor position
             if (typeof self.swing.update === 'function') {
                 const pos = cursorTracker.getPosition();
                 self.swing.update(pos.x, pos.y, canvas, dt);
@@ -548,15 +534,15 @@ class app1{
             if (self.swing.isRotating) {
                 self.swing.swingAngle = (self.swing.swingAngle + self.swing.rotationSpeed * dt) % 360;
             }
-            // Collision detection: remove amazing rectangles that intersect the swinging rectangle
+            // remove amazing rectangles that intersect the swinging rectangle, but only if rotating
             const swingBox = { x: self.swing.x, y: self.swing.y, w: self.swing.width, h: self.swing.height };
             self.area.rectangles = self.area.rectangles.filter(rect => {
-                // leave rectangles that are not AmazingRectangle (e.g., the swing itself)
+                // leave rectangles that are not AmazingRectangle
                 if (rect === self.swing) return true;
                 const a = { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
                 const intersect = !(a.x + a.w < swingBox.x || a.x > swingBox.x + swingBox.w ||
                                     a.y + a.h < swingBox.y || a.y > swingBox.y + swingBox.h);
-                // only remove if currently rotating and the rectangle is NOT poisonous
+                // only remove if currently rotating and the rectangle is not poisonous
                 if (rect instanceof AmazingRectangle) {
                     const isPoisonous = (typeof rect.getPoisonous === 'function') ? rect.getPoisonous() : false;
                     if (intersect && self.swing.isRotating && !isPoisonous) {
@@ -578,7 +564,6 @@ class app1{
                         }
                     }
                 }
-                // if the type of rectangle is pusling rectangle
                 if (rect instanceof PulsingRectangle) {
                     const corners = [
                         {x: swingBox.x, y: swingBox.y},
@@ -598,7 +583,7 @@ class app1{
                     }
                 }
                 if (rect instanceof BulletRectangle) {
-                    if (rect.isOffCanvas()) return false; // remove bullet if off-canvas
+                    if (rect.isOffCanvas()) return false;
                     if (intersect&&!self.swing.getShield()&&canTakeDamage(650)) {
                         if (self.swing.getHealth()<=self.damage1) {
                             gameOver = true;
@@ -612,11 +597,10 @@ class app1{
                 return true;
             
             });
-            // Create an array to track grenades that exploded this frame
+            // Create an array to track grenades for the frame
             let grenadesToExplode = [];
 
             self.area.rectangles = self.area.rectangles.filter(rect => {
-                // your other logic (swing collisions, etc.)
 
                 if (rect instanceof Grenade) {
                     rect.update(dt);
@@ -627,11 +611,11 @@ class app1{
                 return true;
             });
 
-            // Now, handle explosions AFTER the filter (safe and clean)
+            // handle explosions
             for (const grenade of grenadesToExplode) {
                 self.area.rectangles = self.area.rectangles.filter(r => {
-                    if (r === grenade) return true; // don't delete the grenade itself yet
-                    if (r === self.swing) return true; // don't delete the swing rectangle
+                    if (r === grenade) return true;
+                    if (r === self.swing) return true;
                     const rx = r.x + r.width / 2;
                     const ry = r.y + r.height / 2;
                     if (grenade.isWithin(rx, ry)) {
@@ -649,8 +633,6 @@ class app1{
                 const bullet = self.spawnBullet(self.area, rect);
                 if (bullet) {
                     amazingRects.push(bullet);
-                    // Ensure the bullet is part of the drawing area's rectangles so
-                    // it will receive updates and be drawn
                     if (self.area && typeof self.area.addRectangle === 'function') {
                         self.area.addRectangle(bullet);
                     }
@@ -667,27 +649,25 @@ class app1{
 
                     // Show popup
                     const popup = document.getElementById('losePopup');
-                    popup.style.display = 'flex'; // shows the modal (uses flex centering)
+                    popup.style.display = 'flex';
 
                     // Set up button to close popup
                     const playBtn = document.getElementById('losePlayAgain');
                     const okBtn = document.getElementById('loseOK');
                     playBtn.onclick = () => {
-                        // Try to start a fresh game (round 1) without reloading the page.
-                        // If we have access to the Game constructor via the current game instance,
-                        // construct a new Game with the original initial params used in Game.main.
+                        // Try to start a fresh game without reloading the page.
                         // Fallback: reload the page.
                         try {
                             popup.style.display = 'none';
                             if (self.game && typeof self.game.constructor === 'function') {
                                 const GameCtor = self.game.constructor;
                                 // These initial values match Game.main defaults used at startup.
-                                // clear any saved progress on loss - cannot resume after losing
+                                // clear saved progress on loss
                                 if (GameCtor.clearSavedGame) {
                                     try { GameCtor.clearSavedGame(); } catch (e) { /* ignore */ }
                                 }
                                 const newGame = new GameCtor(5, 3, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1);
-                                // Hide home background video when a new game starts programmatically
+                                // Hide home background video when a new game starts through the you lose popup
                                 try { const video = document.getElementById('homeBgVideo'); if (video) video.style.display = 'none'; } catch (e) {}
                                 newGame.start();
                             } else {
@@ -702,20 +682,20 @@ class app1{
                     };
                     okBtn.onclick = () => {
                         popup.style.display = 'none';
-                        // Ensure any previously saved game is erased so Resume cannot restore a lost session
+                        // Ensure any previously saved game is erased
                         try {
                             if (self.game && self.game.constructor && typeof self.game.constructor.clearSavedGame === 'function') {
-                                try { self.game.constructor.clearSavedGame(); } catch (e) { /* ignore */ }
+                                try { self.game.constructor.clearSavedGame(); } catch (e) { }
                             } else if (window && window.localStorage) {
-                                try { window.localStorage.removeItem('amazingRectSavedGame_v1'); } catch (e) { /* ignore */ }
+                                try { window.localStorage.removeItem('amazingRectSavedGame_v1'); } catch (e) { }
                             }
-                        } catch (e) { /* ignore */ }
+                        } catch (e) {  }
 
-                        // Return home without saving (prevents creating a resume after losing)
+                        // Return home without saving
                         if (self.game && typeof self.game.goHome === 'function') {
                             try { self.game.goHome(false); } catch (e) { console.error(e); location.reload(); }
                         } else {
-                            location.reload(); // reload page to restart game
+                            location.reload();
                         }
                     }
                     return; // stop drawing loop
@@ -730,18 +710,16 @@ class app1{
 
             if (gameState) {
                 if (track===0) {
-                    // Stop drawing / freeze the game and show the YouWin popup.
-                    // The actual round increment and scaling is handled by Game.nextRound()
-                    // when the player clicks Next Round.
+                    // freeze the game and show the YouWin popup
                     gameState = false;
                     self.area.rectangles = [];
                     if (self.area.stop) self.area.stop();
                     const popup1 = document.getElementById('YouWin');
-                    popup1.style.display = 'flex'; // shows the modal (uses flex centering)
+                    popup1.style.display = 'flex'; 
 
                     const Exit = document.getElementById('Exit');
                     const PlayAgain = document.getElementById('PlayAgain');
-                    // Math quiz wiring: appears above YouWin, no penalty
+                    // Math quiz
                     const mathPopup = document.getElementById('MathQuizPopup');
                     const mathQEl = document.getElementById('mathQuestion');
                     const mathInput = document.getElementById('mathAnswer');
@@ -751,16 +729,15 @@ class app1{
                     let currentAnswer = null;
                     function generateMath() {
                         // Simple arithmetic: addition, subtraction, multiplication, division
-                        // Keep numbers small so problems remain quick and simple.
                         const opRand = Math.random();
                         if (opRand < 0.4) {
-                            // Addition (40%) - numbers 1..20
+                            // numbers 1 to 20
                             const a = Math.floor(Math.random()*20)+1;
                             const b = Math.floor(Math.random()*20)+1;
                             currentAnswer = a + b;
                             mathQEl.textContent = `${a} + ${b} = ?`;
                         } else if (opRand < 0.7) {
-                            // Subtraction (30%) - ensure non-negative result
+                            // subtraction and ensure non-negative result
                             const a = Math.floor(Math.random()*20)+1;
                             const b = Math.floor(Math.random()*20)+1;
                             const x = Math.max(a, b);
@@ -768,13 +745,13 @@ class app1{
                             currentAnswer = x - y;
                             mathQEl.textContent = `${x} - ${y} = ?`;
                         } else if (opRand < 0.85) {
-                            // Multiplication (15%) - small factors 1..10
+                            // multiplictaion and small factors 1..10
                             const a = Math.floor(Math.random()*10)+1;
                             const b = Math.floor(Math.random()*10)+1;
                             currentAnswer = a * b;
                             mathQEl.textContent = `${a} × ${b} = ?`;
                         } else {
-                            // Division (15%) - produce integer result: choose divisor and quotient
+                            // Division and whole number results
                             const divisor = Math.floor(Math.random()*9)+2; // 2..10
                             const quotient = Math.floor(Math.random()*10)+1; // 1..10
                             const dividend = divisor * quotient;
@@ -816,7 +793,7 @@ class app1{
                             console.warn('Game reference not set on app1');
                         }
                     };
-                    // Show math quiz above the YouWin popup (no penalty) only if enabled in prefs
+                    // Show math quiz above the YouWin popup
                     try {
                         const GameClass = (self && self.game && self.game.constructor) ? self.game.constructor : (window && window.Game) ? window.Game : null;
                         const enabled = GameClass && typeof GameClass.isMathPracticeEnabled === 'function' ? GameClass.isMathPracticeEnabled() : true;
@@ -840,12 +817,12 @@ class app1{
 
                 // When the flash finishes, show the popup
                 if (flashTime <= 0 && flashTriggered) {
-                    flashTriggered = false; // reset
+                    flashTriggered = false;
                     gameState = false;
                     // Show YouWin popup
                     const popup = document.getElementById('YouWin');
                     popup.style.display = 'flex';
-                    // setup PlayAgain / Exit buttons as usual
+                    // setup PlayAgain
                     const Exit = document.getElementById('Exit');
                     const PlayAgain = document.getElementById('PlayAgain');
                     PlayAgain.onclick = () => {
@@ -890,15 +867,15 @@ class app1{
         ctx.textAlign = "right";
         ctx.fillText(`E For Shop`, self.area.canvas.width - 20 , 60);
         ctx.restore();
-        // Draw top-center HUD for grenades, shields, bombs
+        // Draw HUD for grenades, shields, bombs
         (function drawHUD() {
             const ctx = self.area.context;
             const hudWidth = 260;
             const hudHeight = 56;
             const x = (self.area.canvas.width - hudWidth) / 2;
-            const y = 12; // distance from top
+            const y = 12;
 
-            // (semi-transparent rounded rectangle)
+            // shape and color of each slot
             ctx.save();
             ctx.fillStyle = 'rgba(0,0,0,0.35)';
             const radius = 10;
@@ -915,12 +892,12 @@ class app1{
             ctx.closePath();
             ctx.fill();
 
-            // layout: three slots
+            // three slots for the three items
             const slotW = hudWidth / 3;
             const iconXOffsets = [x + slotW * 0 + slotW / 2, x + slotW * 1 + slotW / 2, x + slotW * 2 + slotW / 2];
             const iconY = y + hudHeight / 2;
 
-            // Draw icons (use images if loaded, otherwise fallback to simple shapes)
+            // Draw icons
             const iconSize = 28;
 
             // grenade
@@ -972,13 +949,12 @@ class app1{
         console.log('Amazing Rectangles app started');
     // keep per-app active grenade on the instance so global handlers can access it
     self.activeGrenade = null;
-        let flashTime = 0; // how long the orange flash should show
+        let flashTime = 0;
         let flashTriggered = false;
-        // Keyboard handling: expose per-app handlers and bridge via a single global listener
-        // store one-shot keys on the instance so separate app instances don't conflict
+        // store one-shot keys on the instance so separate app instances do not interfere
         self.oneShotKeys = { '1': false, '2': false, '3': false };
 
-        // attach per-app key handlers (referencing local variables like amazingRects)
+        // attach app1 specific key handlers
         self._handleKeyDown = function(e) {
             if (e.key === 'e') {
                 isShop = true;;
@@ -995,7 +971,7 @@ class app1{
                     amazingRects.push(bomb);
                     self.area.addRectangle(bomb);
                     setTimeout(function() {
-                        // Apply bomb effect: remove all amazing rectangles except the swinging rectangle
+                        // Apply bomb effect
                     self.area.rectangles.forEach(rect => {
                         if (rect instanceof AmazingRectangle) {
                             if (self.game) self.game.totalCash += self.cashRecieved;
@@ -1003,9 +979,9 @@ class app1{
                     });
                     // Remove all rectangles except the swinging rectangle
                     self.area.rectangles = self.area.rectangles.filter(rect => rect === self.swing);
-                    amazingRects.length = 0; // clear tracked rectangles
-                    flashTime = 0.15; // duration of flash
-                    flashTriggered = true; // mark that this is the special flash event
+                    amazingRects.length = 0;
+                    flashTime = 0.15;
+                    flashTriggered = true; // update for other game logic
                     self.Bombs--;
                     }, 750);
                 }
@@ -1024,13 +1000,12 @@ class app1{
             if (e.key === '1' && self.Grenades > 0 && gameState === true) {
                 if (!self.oneShotKeys['1']) {
                     self.oneShotKeys['1'] = true;
-                    // Spawn grenade at cursor, then decrement counts only if spawn succeeded
+                    // Spawn grenade at cursor
                     const grenade = self.createGrenade();
                     if (grenade) {
                         amazingRects.push(grenade);
                         self.area.addRectangle(grenade);
                         self.activeGrenade = grenade; // Store reference on instance
-                        // decrement app-local count and sync to Game.playerStats
                         self.Grenades = (self.Grenades || 1) - 1;
                         if (self.game) self.game.playerStats.grenades = self.Grenades;
                     }
@@ -1064,11 +1039,10 @@ class app1{
                 if (self.oneShotKeys) self.oneShotKeys[e.key] = false;
             }
         };
-
-        // expose this app as the current app for the global handlers
+        // set this app as the current active app for global handlers
         window.__amazingRect_currentApp = self;
 
-        // register the global bridge handlers once; they forward events to the current app
+        // forward events to the current app
         if (!window.__amazingRect_handlersAdded) {
             window.__amazingRect_handlersAdded = true;
             window.__amazingRect_globalHandler = function(ev) {
@@ -1082,7 +1056,6 @@ class app1{
         }
 
         // When this app is torn down / replaced, Game.startApp() will set window.__amazingRect_currentApp
-        // to the new app so the same global handlers forward to the correct instance.
         if (self.activeGrenade && self.activeGrenade.Disappear()) {
             self.activeGrenade = null;
         }

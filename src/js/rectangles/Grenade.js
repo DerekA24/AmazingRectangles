@@ -11,7 +11,7 @@ class Grenade extends AbstractRectangle {
         this.explodeDuration = 2;  // seconds explosion lasts
         this.explodeRadius = 255;
 
-        this.state = "flying"; // "flying" → "exploding" → "gone"
+        this.state = "flying";
         this.timer = 0;
         this.currentRadius = 0;
     }
@@ -24,7 +24,7 @@ class Grenade extends AbstractRectangle {
         else if (this.state === "exploding") {
             
             // Glowing orange explosion effect
-            context.fillStyle = 'rgba(255, 165, 0, 0.3)'; // transparent orange fill
+            context.fillStyle = 'rgba(255, 165, 0, 0.3)';
             context.beginPath();
             context.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
             context.fill();
@@ -34,7 +34,6 @@ class Grenade extends AbstractRectangle {
             context.lineWidth = 3;
             context.stroke();
                 }
-                // if "gone", draw nothing
     }
 
     update(dt) {
@@ -63,7 +62,7 @@ class Grenade extends AbstractRectangle {
                 this.currentRadius += 10;
             }
 
-            // After explosion duration, disappear
+            // After explosion duration then disappear
             if (this.timer >= this.explodeDuration) {
                 this.state = "gone";
             }
@@ -84,7 +83,7 @@ class Grenade extends AbstractRectangle {
     }
 
     Disappear() {
-        // The game loop should remove it only when it's "gone"
+        // The game loop should remove it only when the grenade is "gone"
         return this.state === "gone";
     }
 
