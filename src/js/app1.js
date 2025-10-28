@@ -139,7 +139,7 @@ class app1{
         this.swing.color = 'orange';
         area.addRectangle(this.swing);
         // rotation control
-        this.swing.isRotating = false;
+        this.swing.isRotating = true;
         // degrees per second
         this.swing.rotationSpeed = 540;
         this.swing.setHealth(health);
@@ -994,9 +994,6 @@ class app1{
                     self.Shields--;
                 }
             }
-            if (e.key === 'r' || e.key === 'R') {
-                self.swing.isRotating = true;
-            }
             if (e.key === '1' && self.Grenades > 0 && gameState === true) {
                 if (!self.oneShotKeys['1']) {
                     self.oneShotKeys['1'] = true;
@@ -1031,9 +1028,6 @@ class app1{
         };
 
         self._handleKeyUp = function(e) {
-            if (e.key === 'r' || e.key === 'R') {
-                self.swing.isRotating = false;
-            }
             // reset one-shot guards when key released so the next press will consume an item
             if (e.key === '1' || e.key === '2' || e.key === '3') {
                 if (self.oneShotKeys) self.oneShotKeys[e.key] = false;
