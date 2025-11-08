@@ -16,7 +16,7 @@
       gtag('config', 'G-F7NY7JNE6F');
     </script>
     <style>
-      /* Force a black page background so video (if playing) sits on black */
+      /* Force a black page background so video sits on black */
       html, body, #app { background: black !important; }
       /* Fallback overlay shown when video can't autoplay or cannot be decoded */
       #videoFallback {
@@ -41,12 +41,12 @@
     <header class="site-header">
             <h1 class="site-title">Amazing Rectangles</h1>
         </header>
-    <!-- Background video for homescreen (autoplay muted loop). Hidden/shown by Game.goHome and Game.startApp -->
+    <!-- Background video for homescreen. Hidden/shown by Game.goHome and Game.startApp -->
   <video id="homeBgVideo" autoplay muted loop playsinline poster="images/BackgroundPoster.jpg" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: block; pointer-events: none;">
-    <!-- Preferred web-friendly formats (create these by converting Background.mov to mp4/webm) -->
+    <!-- Preferred web-friendly formats  -->
     <source src="images/Background.mp4" type="video/mp4">
     <source src="images/Background.webm" type="video/webm">
-    <!-- Fallback: original mov (may not be supported by all browsers) -->
+    <!-- Fallback: original mov -->
     <source src="images/Background.mov" type="video/quicktime">
       <!-- fallback text -->
       Your browser does not support the background video.
@@ -82,10 +82,10 @@
         });
         video.addEventListener('stalled', function(){ showFallback('video stalled'); });
         video.addEventListener('playing', hideFallback);
-        // Log format support and readyState for debugging
+        // Log format support
         try { console.log('canPlayType mp4:', video.canPlayType('video/mp4'), 'webm:', video.canPlayType('video/webm'), 'quicktime:', video.canPlayType('video/quicktime')); } catch(e) {}
         console.log('initial video readyState:', video.readyState);
-        // Try to play; if promise rejects, show fallback and attach user gesture
+        // Try to play
         try {
           const p = video.play();
           if (p && typeof p.then === 'function') {
@@ -236,7 +236,7 @@
   </div>
 </div>
 </div>
-<!-- Math quiz popup shown on top of YouWin (no penalty) -->
+<!-- Math quiz popup shown on top of YouWin -->
 <div id="MathQuizPopup" style="
   display: none;
   position: fixed;
@@ -572,7 +572,7 @@
       ">Home</button>
   </div>
 </div>
-    <!-- Load CSS and ES modules from the development /js and /css endpoints -->
+    <!-- Load CSS and ES modules -->
     <script type="module" src="/js/Game.js"></script>
 </body>
 </html>
