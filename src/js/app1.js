@@ -914,9 +914,20 @@ class app1{
             ctx.textAlign = 'left';
             ctx.fillText(`x ${self.Grenades || 0}`, iconXOffsets[0] - 12, iconY + 6);
 
+            // bomb
+            if (self.hudIcons && self.hudIcons.bomb && self.hudIcons.bomb.complete && self.hudIcons.bomb.naturalWidth) {
+                ctx.drawImage(self.hudIcons.bomb, iconXOffsets[1] - 28 - iconSize/2, iconY - iconSize/2, iconSize, iconSize);
+            } else {
+                const bx = iconXOffsets[2] - 28;
+                ctx.fillStyle = '#FF7043';
+                ctx.fillRect(bx - 12, iconY - 12, 18, 18);
+            }
+            ctx.fillStyle = 'black';
+            ctx.fillText(`x ${self.Bombs || 0}`, iconXOffsets[2] - 12, iconY + 6);
+            
             // shield
             if (self.hudIcons && self.hudIcons.shield && self.hudIcons.shield.complete && self.hudIcons.shield.naturalWidth) {
-                ctx.drawImage(self.hudIcons.shield, iconXOffsets[1] - 28 - iconSize/2, iconY - iconSize/2, iconSize, iconSize);
+                ctx.drawImage(self.hudIcons.shield, iconXOffsets[2] - 28 - iconSize/2, iconY - iconSize/2, iconSize, iconSize);
             } else {
                 const sx = iconXOffsets[1] - 28;
                 ctx.fillStyle = '#03A9F4';
@@ -929,17 +940,6 @@ class app1{
             }
             ctx.fillStyle = 'black';
             ctx.fillText(`x ${self.Shields || 0}`, iconXOffsets[1] - 12, iconY + 6);
-
-            // bomb
-            if (self.hudIcons && self.hudIcons.bomb && self.hudIcons.bomb.complete && self.hudIcons.bomb.naturalWidth) {
-                ctx.drawImage(self.hudIcons.bomb, iconXOffsets[2] - 28 - iconSize/2, iconY - iconSize/2, iconSize, iconSize);
-            } else {
-                const bx = iconXOffsets[2] - 28;
-                ctx.fillStyle = '#FF7043';
-                ctx.fillRect(bx - 12, iconY - 12, 18, 18);
-            }
-            ctx.fillStyle = 'black';
-            ctx.fillText(`x ${self.Bombs || 0}`, iconXOffsets[2] - 12, iconY + 6);
 
             ctx.restore();
         })();
